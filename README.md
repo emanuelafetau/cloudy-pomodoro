@@ -71,7 +71,7 @@ sessions
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/yourusername/cloudy-pomodoro.git
+git clone https://github.com/emanuelafetau/cloudy-pomodoro.git
 cd cloudy-pomodoro
 ```
 
