@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloudy — Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { padding: 0; }
+
+    .page-body {
+      padding: 24px;
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .page-heading {
+      font-size: 11px;
+      color: var(--dark);
+      letter-spacing: 1px;
+    }
+
+    /* ── STAT CARDS ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .big-stat {
+      background: var(--white);
+      border: 3px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 12px;
+      text-align: center;
+    }
+
+    .big-stat-val {
+      font-size: 28px;
+      color: var(--dark);
+      margin-bottom: 8px;
+    }
+
+    .big-stat-lbl {
+      font-size: 7px;
+      color: var(--primary);
+      line-height: 1.8;
+    }
+
+    /* ── HEATMAP (smaller cells) ── */
+    .heatmap-card {}
+
+    .heatmap-heading {
+      font-size: 8px;
+      color: var(--dark);
+      margin-bottom: 12px;
+    }
+
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 3px;
+    }
+
+    .heatmap-week {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .heatmap-day {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 2px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      cursor: default;
+      position: relative;
+      transition: transform 0.1s;
+    }
+
+    .heatmap-day:hover { transform: scale(1.4); z-index: 1; }
+    .heatmap-day[title]:hover::after {
+      content: attr(title);
+      position: absolute;
+      bottom: calc(100% + 5px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--dark);
+      color: var(--white);
+      font-size: 6px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .heat-0 { background: var(--card);    border-color: var(--border); }
+    .heat-1 { background: var(--light);   border-color: var(--primary); }
+    .heat-2 { background: var(--primary); border-color: var(--dark); }
+    .heat-3 { background: #1565c0;        border-color: #0d47a1; }
+
+    .heatmap-legend {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 8px;
+    }
+
+    .heatmap-legend span {
+      font-size: 6px;
+      color: var(--dark);
+    }
+
+    .legend-box {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    /* ── RECENT SESSIONS ── */
+    .recent-card {}
+
+    .recent-heading {
+      font-size: 8px;
+      color: var(--dark);
+      margin-bottom: 14px;
+    }
+
+    .session-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--white);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .session-date { font-size: 8px; color: var(--dark); }
+    .session-badge {
+      font-size: 7px;
+      background: var(--primary);
+      color: var(--white);
+      padding: 4px 8px;
+      border-radius: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .heatmap-grid { grid-template-columns: repeat(6, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="/index.html" class="nav-brand">CLOUDY</a>
+    <div class="nav-links">
+      <a href="/index.html">TIMER</a>
+      <a href="/dashboard.html" class="active">DASHBOARD</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user" id="nav-username"></span>
+      <button class="btn-logout" onclick="logout()">LOGOUT</button>
+    </div>
+  </nav>
+
+  <div class="page-body">
+    <p class="page-heading">DASHBOARD</p>
+
+    <!-- ── STAT CARDS ── -->
+    <div class="stats-grid">
+      <div class="big-stat">
+        <div class="big-stat-val" id="s-total">—</div>
+        <div class="big-stat-lbl">TOTAL<br>SESSIONS</div>
+      </div>
+      <div class="big-stat">
+        <div class="big-stat-val" id="s-hours">—</div>
+        <div class="big-stat-lbl">FOCUS<br>HOURS</div>
+      </div>
+      <div class="big-stat">
+        <div class="big-stat-val" id="s-streak">—</div>
+        <div class="big-stat-lbl">DAY<br>STREAK</div>
+      </div>
+      <div class="big-stat">
+        <div class="big-stat-val" id="s-today">—</div>
+        <div class="big-stat-lbl">TODAY'S<br>SESSIONS</div>
+      </div>
+    </div>
+
+    <!-- ── HEATMAP ── -->
+    <div class="card heatmap-card">
+      <p class="heatmap-heading">FOCUS HISTORY — LAST 12 WEEKS</p>
+      <div class="heatmap-grid" id="heatmap"></div>
+      <div class="heatmap-legend">
+        <span>LESS</span>
+        <div class="legend-box heat-0"></div>
+        <div class="legend-box heat-1"></div>
+        <div class="legend-box heat-2"></div>
+        <div class="legend-box heat-3"></div>
+        <span>MORE</span>
+      </div>
+    </div>
+
+    <!-- ── RECENT SESSIONS ── -->
+    <div class="card recent-card">
+      <p class="recent-heading">RECENT ACTIVITY</p>
+      <div id="recent-list"></div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── AUTH GUARD ────────────────────────────────────────
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => {
+        if (!r.ok) { window.location.href = '/login.html'; return null; }
+        return r.json();
+      })
+      .then(d => {
+        if (d) document.getElementById('nav-username').textContent = d.username;
+      });
+
+    async function logout() {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/login.html';
+    }
+
+    // ── LOAD STATS ────────────────────────────────────────
+    async function loadStats() {
+      const res  = await fetch('/api/sessions/stats', { credentials: 'include' });
+      const data = await res.json();
+
+      document.getElementById('s-total').textContent  = data.total_sessions;
+      document.getElementById('s-hours').textContent  = (data.total_minutes / 60).toFixed(1);
+      document.getElementById('s-streak').textContent = data.streak;
+      document.getElementById('s-today').textContent  = data.today_sessions;
+    }
+
+    // ── HEATMAP ───────────────────────────────────────────
+    async function loadHeatmap() {
+      const res   = await fetch('/api/sessions/history', { credentials: 'include' });
+      const rows  = await res.json();
+      const byDay = {};
+      rows.forEach(r => { byDay[r.date] = r.count; });
+
+      const grid = document.getElementById('heatmap');
+      grid.innerHTML = '';
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      for (let w = 11; w >= 0; w--) {
+        const weekEl = document.createElement('div');
+        weekEl.className = 'heatmap-week';
+
+        for (let d = 6; d >= 0; d--) {
+          const date = new Date(today);
+          date.setDate(today.getDate() - (w * 7 + d));
+          const key   = date.toISOString().split('T')[0];
+          const count = byDay[key] || 0;
+          const heat  = count === 0 ? 0 : count === 1 ? 1 : count <= 3 ? 2 : 3;
+
+          const cell = document.createElement('div');
+          cell.className = `heatmap-day heat-${heat}`;
+          cell.title = `${key}: ${count} session${count !== 1 ? 's' : ''}`;
+          weekEl.appendChild(cell);
+        }
+        grid.appendChild(weekEl);
+      }
+    }
+
+    // ── RECENT ACTIVITY ───────────────────────────────────
+    async function loadRecent() {
+      const res  = await fetch('/api/sessions/history', { credentials: 'include' });
+      const rows = await res.json();
+
+      const recent   = [...rows].reverse().slice(0, 7);
+      const listEl   = document.getElementById('recent-list');
+      listEl.innerHTML = '';
+
+      if (!recent.length) {
+        listEl.innerHTML = '<p style="font-size:8px;color:var(--light);text-align:center;padding:16px 0">no sessions yet — start the timer!</p>';
+        return;
+      }
+
+      recent.forEach(r => {
+        if (r.count === 0) return;
+        const el = document.createElement('div');
+        el.className = 'session-row';
+        el.innerHTML = `
+          <span class="session-date">${r.date}</span>
+          <span class="session-badge">${r.count} session${r.count !== 1 ? 's' : ''}</span>
+        `;
+        listEl.appendChild(el);
+      });
+    }
+
+    loadStats();
+    loadHeatmap();
+    loadRecent();
+  </script>
+</body>
+</html>
+

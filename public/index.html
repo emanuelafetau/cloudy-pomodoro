@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cloudy</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { padding: 0; }
+
+    .page-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* ── TWO-COLUMN LAYOUT ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    /* ── TIMER CARD ── */
+    .timer-card {
+      text-align: center;
+    }
+
+    .mascot-wrap { margin-bottom: 12px; }
+
+    .mode-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .mode-tab {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 9px;
+      flex: 1;
+      padding: 11px;
+      border: 3px solid var(--border);
+      background: var(--bg);
+      color: var(--dark);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .mode-tab.active {
+      background: var(--primary);
+      color: var(--white);
+      border-color: var(--dark);
+    }
+
+    .mode-tab:hover:not(.active) { background: var(--light); }
+
+    .timer-controls {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .icon-btn {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 16px;
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      border: 3px solid var(--white);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s;
+    }
+
+    .icon-btn:hover  { transform: translateY(-2px); }
+    .icon-btn:active { transform: translateY(0); }
+
+    .btn-play  { background: var(--primary); color: var(--white); }
+    .btn-reset { background: var(--pink);    color: var(--white); }
+
+    .timer-display {
+      font-size: 46px;
+      color: var(--dark);
+      letter-spacing: 4px;
+      margin: 4px 0 14px;
+      text-shadow: 2px 2px 0 rgba(33,150,243,0.15);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: var(--bg);
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 1s linear;
+      border-radius: 6px;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 6px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-size: 18px;
+      color: var(--dark);
+      margin-bottom: 5px;
+    }
+
+    .stat-lbl {
+      font-size: 7px;
+      color: var(--primary);
+    }
+
+    /* ── SOUND FAB ── */
+    .sound-fab-wrap {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 100;
+    }
+
+    .sound-fab {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 3px solid var(--dark);
+      color: var(--white);
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 3px 3px 0 var(--dark);
+      transition: transform 0.15s, box-shadow 0.15s;
+      user-select: none;
+    }
+
+    .sound-fab:hover {
+      transform: translateY(-2px);
+      box-shadow: 3px 5px 0 var(--dark);
+    }
+
+    .sound-fab:active {
+      transform: translateY(0);
+      box-shadow: 1px 1px 0 var(--dark);
+    }
+
+    .sound-panel {
+      position: absolute;
+      bottom: 68px;
+      right: 0;
+      background: var(--white);
+      border: 3px solid var(--dark);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 4px 4px 0 var(--dark);
+      min-width: 180px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      animation: popUp 0.15s ease;
+    }
+
+    @keyframes popUp {
+      from { opacity: 0; transform: translateY(8px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .sound-panel.open { display: flex; }
+
+    .sound-panel-title {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 7px;
+      color: var(--primary);
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    .sound-btn {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 7px;
+      padding: 9px 12px;
+      border: 2px solid var(--border);
+      background: var(--bg);
+      color: var(--dark);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: left;
+      width: 100%;
+    }
+
+    .sound-btn.active {
+      background: var(--primary);
+      color: var(--white);
+      border-color: var(--dark);
+    }
+
+    .sound-btn:hover:not(.active) { background: var(--light); }
+
+    .volume-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .volume-row span {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 6px;
+      color: var(--dark);
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    /* ── TASK PANEL ── */
+    .task-card { height: 100%; }
+
+    .task-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .task-title {
+      font-size: 9px;
+      color: var(--dark);
+    }
+
+    .task-add-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .task-add-form input {
+      font-size: 8px;
+      padding: 10px 12px;
+    }
+
+    .task-add-form button {
+      font-size: 14px;
+      white-space: nowrap;
+      padding: 10px 14px;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 340px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .task-list::-webkit-scrollbar { width: 4px; }
+    .task-list::-webkit-scrollbar-track { background: var(--bg); border-radius: 4px; }
+    .task-list::-webkit-scrollbar-thumb { background: var(--light); border-radius: 4px; }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--white);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      transition: opacity 0.2s;
+    }
+
+    .task-item.done { opacity: 0.5; }
+    .task-item.done .task-text { text-decoration: line-through; }
+
+    .task-check {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      transition: all 0.15s;
+    }
+
+    .task-item.done .task-check {
+      background: var(--primary);
+      border-color: var(--dark);
+      color: var(--white);
+    }
+
+    .task-text {
+      font-size: 8px;
+      color: var(--dark);
+      flex: 1;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .task-del {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 10px;
+      background: none;
+      border: none;
+      color: var(--pink);
+      cursor: pointer;
+      padding: 2px 4px;
+      flex-shrink: 0;
+      transition: transform 0.15s;
+    }
+
+    .task-del:hover { transform: scale(1.2); }
+
+    .task-empty {
+      font-size: 8px;
+      color: var(--light);
+      text-align: center;
+      padding: 20px 0;
+      line-height: 2;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .timer-display { font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="/index.html" class="nav-brand">CLOUDY</a>
+    <div class="nav-links">
+      <a href="/index.html" class="active">TIMER</a>
+      <a href="/dashboard.html">DASHBOARD</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-user" id="nav-username"></span>
+      <button class="btn-logout" onclick="logout()">LOGOUT</button>
+    </div>
+  </nav>
+
+  <div class="page-body">
+    <div class="main-grid">
+
+      <!-- ── LEFT: TIMER ── -->
+      <div>
+        <div class="card timer-card">
+          <div class="mascot-wrap">
+            <img id="mascot" src="cloud1.png" alt="Cloudy" class="mascot">
+          </div>
+
+          <div class="mode-tabs">
+            <button class="mode-tab active" id="tab-work"  onclick="switchMode('work')">WORK</button>
+            <button class="mode-tab"        id="tab-break" onclick="switchMode('break')">BREAK</button>
+          </div>
+
+          <div class="timer-display" id="timer-display">25:00</div>
+
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+
+          <div class="timer-controls">
+            <button class="icon-btn btn-play"  id="start-btn" onclick="toggleTimer()">▶</button>
+            <button class="icon-btn btn-reset" onclick="resetTimer()">↻</button>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-val" id="stat-sessions">0</div>
+              <div class="stat-lbl">TODAY</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val" id="stat-minutes">0</div>
+              <div class="stat-lbl">MINUTES</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val" id="stat-streak">0</div>
+              <div class="stat-lbl">STREAK</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RIGHT: TASKS ── -->
+      <div class="card task-card">
+        <div class="task-header">
+          <span class="task-title">MY TASKS</span>
+        </div>
+
+        <div class="task-add-form">
+          <input type="text" id="task-input" placeholder="add a task..." maxlength="80">
+          <button class="btn btn-primary" onclick="addTask()">+</button>
+        </div>
+
+        <div class="task-list" id="task-list">
+          <div class="task-empty">no tasks yet.<br>add one above ↑</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── SOUND FAB ── -->
+  <div class="sound-fab-wrap" id="sound-fab-wrap">
+    <div class="sound-panel" id="sound-panel">
+      <div class="sound-panel-title">AMBIENT SOUNDS</div>
+      <button class="sound-btn" data-src="sounds/rain.mp3"   onclick="toggleSound(this)">RAIN</button>
+      <button class="sound-btn" data-src="sounds/cafe.mp3"   onclick="toggleSound(this)">CAFÉ</button>
+      <button class="sound-btn" data-src="sounds/forest.mp3" onclick="toggleSound(this)">FOREST</button>
+      <button class="sound-btn" data-src="sounds/waves.mp3"  onclick="toggleSound(this)">WAVES</button>
+      <div class="volume-row">
+        <span>VOL</span>
+        <input type="range" id="volume" min="0" max="1" step="0.05" value="0.5" oninput="setVolume(this.value)">
+      </div>
+    </div>
+    <div class="sound-fab" id="sound-fab" onclick="toggleSoundPanel()" title="Ambient sounds">
+      ♪
+    </div>
+  </div>
+
+  <script>
+    // ── AUTH GUARD ────────────────────────────────────────
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => {
+        if (!r.ok) { window.location.href = '/login.html'; return null; }
+        return r.json();
+      })
+      .then(d => {
+        if (d) document.getElementById('nav-username').textContent = d.username;
+      });
+
+    async function logout() {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/login.html';
+    }
+
+    // ── TIMER CONSTANTS ───────────────────────────────────
+    const WORK_TIME  = 25 * 60;
+    const BREAK_TIME =  5 * 60;
+
+    const STORAGE_KEY = 'cloudy_timer';
+
+    // ── TIMER STATE ───────────────────────────────────────
+    // Persistence: store { mode, startedAt (epoch ms), pausedAt (epoch ms or null), timeLeft, isRunning }
+    // When running: effective timeLeft = savedTimeLeft - (now - startedAt) / 1000
+    // When paused:  timeLeft = savedTimeLeft (startedAt is irrelevant)
+
+    function saveState() {
+      const state = {
+        mode,
+        timeLeft,
+        totalTime,
+        isRunning,
+        startedAt: isRunning ? Date.now() - (totalTime - timeLeft) * 1000 : null,
+        savedTimeLeft: timeLeft,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch { return null; }
+    }
+
+    let timeLeft, totalTime, isRunning, mode, interval;
+
+    function initTimer() {
+      const saved = loadState();
+      if (saved) {
+        mode      = saved.mode      || 'work';
+        totalTime = saved.totalTime || WORK_TIME;
+        isRunning = saved.isRunning || false;
+
+        if (isRunning && saved.startedAt) {
+          // Compute elapsed time since we last started
+          const elapsed = Math.floor((Date.now() - saved.startedAt) / 1000);
+          timeLeft = Math.max(0, saved.savedTimeLeft - elapsed);
+        } else {
+          timeLeft = saved.savedTimeLeft ?? (mode === 'work' ? WORK_TIME : BREAK_TIME);
+        }
+      } else {
+        mode      = 'work';
+        timeLeft  = WORK_TIME;
+        totalTime = WORK_TIME;
+        isRunning = false;
+      }
+
+      // Sync tabs UI
+      document.getElementById('tab-work').classList.toggle('active',  mode === 'work');
+      document.getElementById('tab-break').classList.toggle('active', mode === 'break');
+      document.getElementById('mascot').src = mode === 'work' ? 'cloud1.png' : 'cloud2.png';
+
+      renderTimer();
+
+      if (isRunning) {
+        if (timeLeft === 0) {
+          // Session finished while away
+          finishSession();
+        } else {
+          const startBtn = document.getElementById('start-btn');
+          startBtn.textContent = '❚❚';
+          startBtn.style.background = 'var(--pink)';
+          interval = setInterval(tick, 1000);
+        }
+      }
+    }
+
+    const timerEl    = document.getElementById('timer-display');
+    const progressEl = document.getElementById('progress-fill');
+    const startBtn   = document.getElementById('start-btn');
+    const mascotEl   = document.getElementById('mascot');
+
+    function renderTimer() {
+      const m = Math.floor(timeLeft / 60);
+      const s = timeLeft % 60;
+      timerEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      progressEl.style.width = `${((totalTime - timeLeft) / totalTime) * 100}%`;
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        isRunning = false;
+        clearInterval(interval);
+        startBtn.textContent = '▶';
+        startBtn.style.background = 'var(--primary)';
+      } else {
+        isRunning = true;
+        startBtn.textContent = '❚❚';
+        startBtn.style.background = 'var(--pink)';
+        interval = setInterval(tick, 1000);
+      }
+      saveState();
+    }
+
+    function tick() {
+      if (timeLeft > 0) {
+        timeLeft--;
+        renderTimer();
+        saveState();
+      } else {
+        finishSession();
+      }
+    }
+
+    async function finishSession() {
+      clearInterval(interval);
+      isRunning = false;
+      startBtn.textContent = '▶';
+      startBtn.style.background = 'var(--primary)';
+
+      if (mode === 'work') {
+        await fetch('/api/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ duration_minutes: 25 }),
+        });
+        loadStats();
+        setTimeout(() => switchMode('break'), 800);
+      } else {
+        setTimeout(() => switchMode('work'), 800);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(interval);
+      isRunning = false;
+      startBtn.textContent = '▶';
+      startBtn.style.background = 'var(--primary)';
+      timeLeft  = mode === 'work' ? WORK_TIME : BREAK_TIME;
+      totalTime = timeLeft;
+      renderTimer();
+      saveState();
+    }
+
+    function switchMode(m) {
+      mode = m;
+      clearInterval(interval);
+      isRunning = false;
+      startBtn.textContent = '▶';
+      startBtn.style.background = 'var(--primary)';
+      timeLeft  = m === 'work' ? WORK_TIME : BREAK_TIME;
+      totalTime = timeLeft;
+      renderTimer();
+      document.getElementById('tab-work').classList.toggle('active',  m === 'work');
+      document.getElementById('tab-break').classList.toggle('active', m === 'break');
+      mascotEl.src = m === 'work' ? 'cloud1.png' : 'cloud2.png';
+      saveState();
+    }
+
+    // Also save state on page unload / visibility change
+    document.addEventListener('visibilitychange', saveState);
+    window.addEventListener('beforeunload', saveState);
+
+    // ── STATS FROM DB ─────────────────────────────────────
+    async function loadStats() {
+      const res  = await fetch('/api/sessions/stats', { credentials: 'include' });
+      if (!res.ok) return;
+      const data = await res.json();
+      document.getElementById('stat-sessions').textContent = data.today_sessions;
+      document.getElementById('stat-minutes').textContent  = data.today_sessions * 25;
+      document.getElementById('stat-streak').textContent   = data.streak;
+    }
+
+    loadStats();
+    initTimer();
+
+    // ── TASKS ─────────────────────────────────────────────
+    const taskListEl = document.getElementById('task-list');
+
+    async function loadTasks() {
+      const res   = await fetch('/api/tasks', { credentials: 'include' });
+      const tasks = await res.json();
+      renderTasks(tasks);
+    }
+
+    function renderTasks(tasks) {
+      if (!tasks.length) {
+        taskListEl.innerHTML = '<div class="task-empty">no tasks yet.<br>add one above ↑</div>';
+        return;
+      }
+      taskListEl.innerHTML = tasks.map(t => `
+        <div class="task-item ${t.done ? 'done' : ''}" id="task-${t.id}">
+          <div class="task-check" onclick="toggleTask(${t.id}, ${t.done})">
+            ${t.done ? '✓' : ''}
+          </div>
+          <span class="task-text">${escHtml(t.title)}</span>
+          <button class="task-del" onclick="deleteTask(${t.id})" title="Delete">×</button>
+        </div>
+      `).join('');
+    }
+
+    async function addTask() {
+      const input = document.getElementById('task-input');
+      const title = input.value.trim();
+      if (!title) return;
+      await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ title }),
+      });
+      input.value = '';
+      loadTasks();
+    }
+
+    async function toggleTask(id, currentDone) {
+      await fetch(`/api/tasks/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ done: !currentDone }),
+      });
+      loadTasks();
+    }
+
+    async function deleteTask(id) {
+      await fetch(`/api/tasks/${id}`, { method: 'DELETE', credentials: 'include' });
+      loadTasks();
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    document.getElementById('task-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addTask();
+    });
+
+    loadTasks();
+
+    // ── SOUND FAB ─────────────────────────────────────────
+    const audios = {};
+    let activeBtn = null;
+    let soundPanelOpen = false;
+
+    function toggleSoundPanel() {
+      soundPanelOpen = !soundPanelOpen;
+      document.getElementById('sound-panel').classList.toggle('open', soundPanelOpen);
+    }
+
+    // Close panel if clicking outside
+    document.addEventListener('click', function(e) {
+      const wrap = document.getElementById('sound-fab-wrap');
+      if (!wrap.contains(e.target)) {
+        soundPanelOpen = false;
+        document.getElementById('sound-panel').classList.remove('open');
+      }
+    });
+
+    function toggleSound(btn) {
+      const src = btn.dataset.src;
+
+      if (activeBtn === btn) {
+        audios[src].pause();
+        btn.classList.remove('active');
+        activeBtn = null;
+        document.getElementById('sound-fab').style.background = 'var(--primary)';
+        return;
+      }
+
+      if (activeBtn) {
+        const prev = activeBtn.dataset.src;
+        audios[prev].pause();
+        activeBtn.classList.remove('active');
+      }
+
+      if (!audios[src]) {
+        audios[src] = new Audio(src);
+        audios[src].loop = true;
+        audios[src].volume = parseFloat(document.getElementById('volume').value);
+      }
+      audios[src].play().catch(() => {});
+      btn.classList.add('active');
+      activeBtn = btn;
+      // Pulse the FAB to indicate sound is playing
+      document.getElementById('sound-fab').style.background = 'var(--pink)';
+    }
+
+    function setVolume(val) {
+      Object.values(audios).forEach(a => { a.volume = parseFloat(val); });
+    }
+  </script>
+</body>
+</html>
+

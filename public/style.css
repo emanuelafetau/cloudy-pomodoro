@@ -1,0 +1,165 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg:       #bbdefb;
+  --card:     #e3f2fd;
+  --primary:  #2196f3;
+  --dark:     #1976d2;
+  --light:    #90caf9;
+  --white:    #ffffff;
+  --pink:     #f48fb1;
+  --border:   #64b5f6;
+  --shadow:   0 10px 30px rgba(33, 150, 243, 0.25);
+}
+
+body {
+  font-family: 'Press Start 2P', cursive;
+  background: var(--bg);
+  min-height: 100vh;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* ── NAV ─────────────────────────────────────── */
+.nav {
+  background: var(--white);
+  border-bottom: 3px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.nav-brand {
+  font-size: 11px;
+  color: var(--primary);
+  letter-spacing: 1px;
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 12px;
+}
+
+.nav-links a {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 8px;
+  color: var(--dark);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--dark);
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-user {
+  font-size: 8px;
+  color: var(--dark);
+}
+
+.btn-logout {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 7px;
+  padding: 7px 10px;
+  background: var(--pink);
+  color: var(--white);
+  border: 2px solid var(--white);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.btn-logout:hover { transform: translateY(-2px); }
+
+/* ── CARDS ───────────────────────────────────── */
+.card {
+  background: var(--card);
+  border-radius: 20px;
+  border: 4px solid var(--white);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+/* ── BUTTONS ─────────────────────────────────── */
+.btn {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 9px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 3px solid var(--white);
+  cursor: pointer;
+  transition: transform 0.15s;
+  line-height: 1.4;
+}
+
+.btn:hover  { transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary  { background: var(--primary); color: var(--white); }
+.btn-pink     { background: var(--pink);    color: var(--white); }
+.btn-light    { background: var(--card);    color: var(--dark);  border-color: var(--border); }
+
+/* ── INPUTS ──────────────────────────────────── */
+input[type="text"],
+input[type="password"] {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 9px;
+  padding: 12px 14px;
+  background: var(--white);
+  border: 3px solid var(--border);
+  border-radius: 12px;
+  color: var(--dark);
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+  border-color: var(--primary);
+}
+
+/* ── ERROR ───────────────────────────────────── */
+.error-msg {
+  font-size: 7px;
+  color: var(--pink);
+  min-height: 14px;
+  margin-top: 6px;
+}
+
+/* ── MASCOT FLOAT ────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+.mascot {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  animation: float 3s ease-in-out infinite;
+  filter: drop-shadow(0 8px 15px rgba(33, 150, 243, 0.3));
+}
